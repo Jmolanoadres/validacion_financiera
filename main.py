@@ -19,6 +19,18 @@ from report_writer import write_report
 VERSION = "1.0.0"
 
 
+def debug_df(df, name: str):
+    cols = list(map(str, df.columns))
+    logging.info(f"[DEBUG] {name}")
+    logging.info(f"        Filas: {len(df)}")
+    logging.info(f"        Columnas ({len(cols)}): {cols}")
+
+
+def ensure_not_empty(df, context: str):
+    if df is None or df.empty:
+        raise SystemExit(f"{context}: dataframe vacío. Revisa estructura del archivo o encabezados.")
+
+
 def setup_logger(out_dir: str) -> str:
     os.makedirs(out_dir, exist_ok=True)
     log_path = os.path.join(out_dir, "validacion.log")
@@ -81,7 +93,9 @@ def main():
 
     # 1) Leer Balance
     try:
-        df_balance_raw = read_table(args.balance, skiprows=7)
+        df_balance_raw = read_table(args.balance)
+        ensure_not_empty(df_balance_raw, "Balance_prueba")
+        debug_df(df_balance_raw, "Balance RAW")
     except InputError as e:
         raise SystemExit(str(e))
 
@@ -107,10 +121,19 @@ def main():
 
     # 2) Validación 1: Aux tercero
     if args.aux_tercero:
-        df_aux_t_raw = read_table(args.aux_tercero, skiprows=18) 
+        aux_t_required = {
+        "Cuenta Contable": ["CUENTA CONTABLE", "Cuenta Contable"],
+        "Descripción de Líneas": ["Descripción de Líneas", "Descripcion de Lineas"],
+        "Saldo Inicial Tercero": ["Saldo Inicial Tercero"],
+        "Débito": ["Débito", "Debito"],
+        "Crédito": ["Crédito", "Credito"],
+        "Saldo Final Tercero": ["Saldo Final Tercero"],
+        } 
+        df_aux_t_raw = read_table(args.aux_tercero,
+        required_columns_hint=list(aux_t_required.keys()))
+        ensure_not_empty(df_aux_t_raw, "Libro_auxiliar_tercero") 
         df_aux_t_raw = standardize_columns(df_aux_t_raw)
-        logging.info(f"Aux tercero filas (raw): {len(df_aux_t_raw)} | columnas: {list(df_aux_t_raw.columns)}")
-
+        debug_df(df_aux_t_raw, "Aux Tercero RAW")
         aux_t_required = {
             "Cuenta Contable": ["CUENTA CONTABLE", "Cuenta", "CuentaContable"],
             "Descripción de Líneas": ["Descripcion de Lineas", "Descripción de lineas", "DESCRIPCIÓN DE LÍNEAS"],
@@ -122,8 +145,6 @@ def main():
 
         df_aux_t = resolve_required_columns(df_aux_t_raw, aux_t_required, context="Libro_auxiliar_tercero")
         df_aux_t_agg = transform_aux_tercero(df_aux_t)
-        logging.info(f"Aux tercero agregado (cuentas únicas): {len(df_aux_t_agg)}")
-        logging.info(f"Aux tercero agregado primeras 10 filas:\n{df_aux_t_agg.head(10)}")
 
         out = validate_v1_balance_vs_aux(df_balance_agg, df_aux_t_agg, aux_type="tercero", tolerance=args.tolerance)
         # prefijar hojas para distinguir si también corre aux cuenta
@@ -131,8 +152,20 @@ def main():
             v1_outputs[f"{k}_TERCERO"] = v
 
     # 3) Validación 1: Aux cuenta
+        
     if args.aux_cuenta:
-        df_aux_c_raw = read_table(args.aux_cuenta, skiprows=16)
+        aux_c_required = {
+            "Cuenta Contable": ["Cuenta Contable"],
+            "Descripción de Líneas": ["Descripcion de Linea", "Descripción de Líneas"],
+            "Débito": ["Débito", "Debito"],
+            "Crédito": ["Crédito", "Credito"],
+        }
+
+        df_aux_c_raw = read_table(args.aux_cuenta,
+            required_columns_hint=list(aux_c_required.keys())        )
+        ensure_not_empty(df_aux_c_raw, "Libro_auxiliar_cuenta")
+        debug_df(df_aux_c_raw, "Aux Cuenta RAW")
+
         df_aux_c_raw = standardize_columns(df_aux_c_raw)
         logging.info(f"Aux cuenta filas (raw): {len(df_aux_c_raw)} | columnas: {list(df_aux_c_raw.columns)}")
 
@@ -154,7 +187,10 @@ def main():
 
     # 4) Leer Transacciones
     try:
-        df_tx_raw = read_table(args.transacciones, skiprows=0)
+        df_tx_raw = read_table(args.transacciones)
+        ensure_not_empty(df_tx_raw, "Transacciones")
+        debug_df(df_tx_raw, "Transacciones RAW")
+
     except InputError as e:
         raise SystemExit(str(e))
 

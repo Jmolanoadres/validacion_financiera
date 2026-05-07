@@ -214,79 +214,53 @@ def transform_aux_tercero(df_aux: pd.DataFrame) -> pd.DataFrame:
     return by_account
 
 
-def transform_aux_cuenta(df_aux: pd.DataFrame) -> pd.DataFrame:
-    """
-    Aplica reglas:
-    - identifica filas etiqueta 'Saldo Inicial'/'Saldo Final' en 'Descripción de Líneas'
-    - deb/cred se suman de movimientos (filas no saldo)
-    - construye saldo inicial/final desde:
-      a) columnas 'Saldo Inicial'/'Saldo Final' si existen, o
-      b) columna 'Saldo' si existe, o
-      c) si no existe columna de saldo, intenta usar 'Débito'/'Crédito' (fallback: NaN)
-    """
+def transform_aux_cuenta(
+    df_aux: pd.DataFrame,
+    *,
+    saldo_inicial_hint: float | None = None,
+    saldo_final_hint: float | None = None
+) -> pd.DataFrame:
+
     df = df_aux.copy()
+
+    # Normalizar cuenta
+    df["Cuenta Contable"] = df["Cuenta Contable"].fillna("").astype(str).str.strip()
+    df = df[df["Cuenta Contable"] != ""]
+
     df["Cuenta Contable"] = df["Cuenta Contable"].map(clean_account_key)
-    df["Descripción de Líneas"] = df["Descripción de Líneas"].astype(str).map(lambda x: x.strip())
 
-    # Numeric base
-    possible_num = ["Débito", "Crédito", "Saldo Inicial", "Saldo Final", "Saldo"]
-    df = to_numeric_columns(df, [c for c in possible_num if c in df.columns])
+    # Numéricos
+    df = to_numeric_columns(df, ["Débito", "Crédito"])
 
-    # Determinar fuente de saldo
-    has_si = "Saldo Inicial" in df.columns
-    has_sf = "Saldo Final" in df.columns
-    has_saldo = "Saldo" in df.columns
-
-    def _saldo_from_row(row, which: str):
-        # which: "Saldo Inicial" o "Saldo Final"
-        if which == "Saldo Inicial":
-            if has_si:
-                return row.get("Saldo Inicial", pd.NA)
-            if has_saldo:
-                return row.get("Saldo", pd.NA)
-            return pd.NA
-        else:
-            if has_sf:
-                return row.get("Saldo Final", pd.NA)
-            if has_saldo:
-                return row.get("Saldo", pd.NA)
-            return pd.NA
-
-    # Marcar tipo de fila
-    is_si = df["Descripción de Líneas"] == "Saldo Inicial"
-    is_sf = df["Descripción de Líneas"] == "Saldo Final"
-    is_mov = ~(is_si | is_sf)
-
-    # Sum deb/cred de movimientos
-    mov = df[is_mov].copy()
-    mov_agg = (
-        mov.groupby("Cuenta Contable", dropna=False)[["Débito", "Crédito"]]
-        .sum(min_count=1)
-        .reset_index()
+    # Eliminar fila TOTAL
+    is_total = df.apply(
+        lambda r: any(isinstance(v, str) and _fold_for_match(v) == "total" for v in r.values),
+        axis=1
     )
 
-    # Saldos desde filas etiquetadas
-    si_df = df[is_si].copy()
-    if not si_df.empty:
-        si_df["Saldo Inicial_val"] = si_df.apply(lambda r: _saldo_from_row(r, "Saldo Inicial"), axis=1)
-        si_agg = si_df.groupby("Cuenta Contable", dropna=False)["Saldo Inicial_val"].sum(min_count=1).reset_index()
-    else:
-        si_agg = pd.DataFrame({"Cuenta Contable": [], "Saldo Inicial_val": []})
+    df_mov = df[~is_total]
 
-    sf_df = df[is_sf].copy()
-    if not sf_df.empty:
-        sf_df["Saldo Final_val"] = sf_df.apply(lambda r: _saldo_from_row(r, "Saldo Final"), axis=1)
-        sf_agg = sf_df.groupby("Cuenta Contable", dropna=False)["Saldo Final_val"].sum(min_count=1).reset_index()
-    else:
-        sf_agg = pd.DataFrame({"Cuenta Contable": [], "Saldo Final_val": []})
+    rows = []
 
-    # Merge final
-    out = mov_agg.merge(si_agg, on="Cuenta Contable", how="outer").merge(sf_agg, on="Cuenta Contable", how="outer")
-    out = out.rename(columns={"Saldo Inicial_val": "Saldo Inicial", "Saldo Final_val": "Saldo Final"})
+    for cuenta, g in df_mov.groupby("Cuenta Contable", dropna=False):
 
-    # Asegurar columnas presentes
-    for c in ["Débito", "Crédito", "Saldo Inicial", "Saldo Final"]:
-        if c not in out.columns:
-            out[c] = pd.NA
+        debitos = g["Débito"].sum(min_count=1)
+        creditos = g["Crédito"].sum(min_count=1)
 
-    return out
+        # USAR SIEMPRE los hints
+        saldo_ini = saldo_inicial_hint if saldo_inicial_hint is not None else 0.0
+
+        if saldo_final_hint is not None:
+            saldo_fin = saldo_final_hint
+        else:
+            saldo_fin = saldo_ini + debitos - creditos
+
+        rows.append({
+            "Cuenta Contable": cuenta,
+            "Saldo Inicial": saldo_ini,
+            "Débito": debitos,
+            "Crédito": creditos,
+            "Saldo Final": saldo_fin,
+        })
+
+    return pd.DataFrame(rows)

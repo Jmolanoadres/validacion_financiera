@@ -1,5 +1,7 @@
 from __future__ import annotations
 import os
+import re
+import unicodedata
 import pandas as pd
 
 class InputError(Exception):
@@ -97,3 +99,79 @@ def read_table(
         raise InputError(f"{path} quedó vacío tras lectura.")
 
     return df
+
+def _fold(s: str) -> str:
+    s = "" if s is None else str(s)
+    s = s.strip().lower()
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    s = re.sub(r"\s+", " ", s)
+    return s
+
+def _parse_number_loose(x):
+    if x is None:
+        return None
+    # openpyxl puede devolver float/int ya
+    if isinstance(x, (int, float)):
+        return float(x)
+    s = str(x).strip()
+    if not s:
+        return None
+    s = s.replace("\u00A0", " ").replace(" ", "")
+    # patrón miles/decimales
+    if "." in s and "," in s:
+        if s.rfind(",") > s.rfind("."):
+            s = s.replace(".", "").replace(",", ".")
+        else:
+            s = s.replace(",", "")
+    else:
+        if "," in s and "." not in s:
+            s = s.replace(",", ".")
+        elif "." in s and s.count(".") > 1:
+            s = s.replace(".", "")
+    s = re.sub(r"[^0-9\.\-]", "", s)
+    try:
+        return float(s)
+    except Exception:
+        return None
+
+def extract_labeled_amount_excel(
+    path: str,
+    label: str,
+    sheet_name: int | str = 0,
+    search_max_cols: int = 60
+) -> tuple[float | None, str | None]:
+    """
+    Busca 'label' en cualquier celda de la hoja y devuelve:
+      (valor_numérico, dirección_celda_label)
+    tomando el primer número a la derecha en la misma fila.
+    """
+    try:
+        from openpyxl import load_workbook
+    except Exception as e:
+        raise InputError(f"openpyxl no disponible para extraer etiquetas: {e}")
+
+    if not os.path.exists(path):
+        raise InputError(f"No se encontró el archivo: {path}")
+
+    wb = load_workbook(path, read_only=True, data_only=True)
+    ws = wb[sheet_name] if isinstance(sheet_name, str) else wb.worksheets[int(sheet_name)]
+
+    target = _fold(label)
+
+    for row in ws.iter_rows():
+        # limitamos columnas para no recorrer 16k columnas si existieran
+        cells = row[:search_max_cols]
+        for j, cell in enumerate(cells):
+            v = cell.value
+            if v is None:
+                continue
+            if target in _fold(v):
+                # buscar a la derecha un número
+                for k in range(j + 1, min(len(cells), j + 15)):
+                    num = _parse_number_loose(cells[k].value)
+                    if num is not None:
+                        addr = cell.coordinate
+                        return num, addr
+
+    return None, None

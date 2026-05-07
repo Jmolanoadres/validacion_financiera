@@ -136,7 +136,7 @@ def validate_v2_transacciones(df_tx: pd.DataFrame) -> dict[str, pd.DataFrame]:
         )
 
     # Duplicados por Tipo + Numero
-    dup_mask = df.duplicated(subset=["Tipo de Comprobante", "Numero de Comprobante"], keep=False)
+    dup_mask = df.duplicated(subset=["Origen","Tipo de Comprobante", "Numero de Comprobante"], keep=False)
     df_dup = df[dup_mask].copy()
 
     return {
@@ -144,3 +144,308 @@ def validate_v2_transacciones(df_tx: pd.DataFrame) -> dict[str, pd.DataFrame]:
         "V2_NumComp_Duplicado": df_dup.drop(columns=["Fecha contable_parsed"], errors="ignore"),
         "V2_Total_Evaluados": df  # para resumen
     }
+
+def validate_aux_totales(
+    df_aux_raw: pd.DataFrame,
+    *,
+    aux_type: str,
+    tolerance: float = 0.01
+) -> pd.DataFrame:
+    """
+    Valida que la sumatoria de Débito/Crédito sea consistente
+    con la fila 'Total' del reporte.
+
+    aux_type: "tercero" o "cuenta"
+    """
+
+    df = df_aux_raw.copy()
+
+    # -----------------------------
+    # 1) Detectar columna descripción
+    # -----------------------------
+    desc_candidates = [
+        "Descripción de Líneas",
+        "Descripcion de Linea",
+        "Descripción de Linea",
+        "Descripcion de Líneas",
+    ]
+
+    desc_col = None
+    for c in desc_candidates:
+        if c in df.columns:
+            desc_col = c
+            break
+
+    if desc_col is None:
+        raise ValueError(f"[{aux_type}] No se encontró columna de descripción")
+
+    # -----------------------------
+    # 2) Convertir valores numéricos
+    # -----------------------------
+    df["Débito"] = pd.to_numeric(df.get("Débito"), errors="coerce")
+    df["Crédito"] = pd.to_numeric(df.get("Crédito"), errors="coerce")
+
+    # -----------------------------
+    # 3) Identificar fila TOTAL
+    # -----------------------------
+    is_total = (
+        df[desc_col]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .eq("total")
+    )
+
+    df_total = df[is_total]
+    df_mov = df[~is_total]
+
+    if df_total.empty:
+        return pd.DataFrame([{
+            "Tipo": aux_type,
+            "Error": "No se encontró fila TOTAL"
+        }])
+
+    # Tomar primer total (Oracle suele tener uno)
+    total_row = df_total.iloc[0]
+
+    total_debito = total_row["Débito"]
+    total_credito = total_row["Crédito"]
+
+    # -----------------------------
+    # 4) Sumatorias calculadas
+    # -----------------------------
+    sum_debito = df_mov["Débito"].sum()
+    sum_credito = df_mov["Crédito"].sum()
+
+    # -----------------------------
+    # 5) Diferencias
+    # -----------------------------
+    diff_debito = sum_debito - total_debito
+    diff_credito = sum_credito - total_credito
+
+    return pd.DataFrame([
+        {
+            "Tipo": aux_type,
+            "Campo": "Débito Total",
+            "Valor Calculado": sum_debito,
+            "Valor Reporte": total_debito,
+            "Diferencia": diff_debito,
+            "Fuera Tolerancia": abs(diff_debito) > tolerance
+        },
+        {
+            "Tipo": aux_type,
+            "Campo": "Crédito Total",
+            "Valor Calculado": sum_credito,
+            "Valor Reporte": total_credito,
+            "Diferencia": diff_credito,
+            "Fuera Tolerancia": abs(diff_credito) > tolerance
+        }
+    ])
+
+def validate_aux_tercero_totales_detallado(
+    df_aux: pd.DataFrame,
+    *,
+    tolerance: float = 0.01
+) -> pd.DataFrame:
+    """
+    Valida consistencia entre:
+    - Sumatoria de movimientos
+    - Sumatoria de filas 'Total' (por tercero)
+
+    Aplica a Libro Auxiliar por Tercero (Oracle Fusion)
+    """
+
+    df = df_aux.copy()
+
+    # -----------------------------
+    # 1) Detectar columna descripción
+    # -----------------------------
+    desc_col = None
+    for c in [
+        "Descripción de Líneas",
+        "Descripcion de Lineas",
+        "Descripción de Linea",
+    ]:
+        if c in df.columns:
+            desc_col = c
+            break
+
+    if desc_col is None:
+        raise ValueError("No se encontró columna de descripción")
+
+    # -----------------------------
+    # 2) Normalizar valores
+    # -----------------------------
+    df[desc_col] = df[desc_col].fillna("").astype(str).str.strip().str.lower()
+
+    df["Débito"] = pd.to_numeric(df.get("Débito"), errors="coerce")
+    df["Crédito"] = pd.to_numeric(df.get("Crédito"), errors="coerce")
+
+    # -----------------------------
+    # 3) Separar movimientos vs totales
+    # -----------------------------
+    is_total = df[desc_col] == "total"
+
+    df_total = df[is_total]
+    df_mov = df[~is_total]
+
+    # -----------------------------
+    # 4) Validar existencia de totales
+    # -----------------------------
+    if df_total.empty:
+        return pd.DataFrame([{
+            "Validación": "Aux Tercero Totales",
+            "Resultado": "ERROR",
+            "Detalle": "No existen filas 'Total'"
+        }])
+
+    # -----------------------------
+    # 5) Sumatorias
+    # -----------------------------
+    total_debito_reporte = df_total["Débito"].sum()
+    total_credito_reporte = df_total["Crédito"].sum()
+
+    total_debito_calc = df_mov["Débito"].sum()
+    total_credito_calc = df_mov["Crédito"].sum()
+
+    # -----------------------------
+    # 6) Diferencias
+    # -----------------------------
+    diff_debito = total_debito_calc - total_debito_reporte
+    diff_credito = total_credito_calc - total_credito_reporte
+
+    # -----------------------------
+    # 7) Resultado estructurado
+    # -----------------------------
+    return pd.DataFrame([
+        {
+            "Campo": "Débito",
+            "Valor Calculado": total_debito_calc,
+            "Valor Reporte (Totales)": total_debito_reporte,
+            "Diferencia": diff_debito,
+            "Fuera Tolerancia": abs(diff_debito) > tolerance
+        },
+        {
+            "Campo": "Crédito",
+            "Valor Calculado": total_credito_calc,
+            "Valor Reporte (Totales)": total_credito_reporte,
+            "Diferencia": diff_credito,
+            "Fuera Tolerancia": abs(diff_credito) > tolerance
+        }
+    ])
+
+def split_aux_by_cuenta(df: pd.DataFrame) -> list[pd.DataFrame]:
+
+    blocks = []
+    current_block = []
+
+    for _, row in df.iterrows():
+
+        texto = " ".join([str(v) for v in row.values if pd.notna(v)])
+
+        # Detecta inicio de nueva cuenta
+        if "Cuenta:" in texto and current_block:
+            blocks.append(pd.DataFrame(current_block))
+            current_block = []
+
+        current_block.append(row)
+
+    if current_block:
+        blocks.append(pd.DataFrame(current_block))
+
+    return blocks
+
+
+def transform_aux_cuenta_por_bloques(df_aux_raw: pd.DataFrame):
+
+    blocks = split_aux_by_cuenta(df_aux_raw)
+
+    rows = []
+
+    for block in blocks:
+
+        # ------------------------
+        # Detectar cuenta
+        # ------------------------
+        cuenta = None
+        for _, r in block.iterrows():
+            vals = [str(v) for v in r.values if pd.notna(v)]
+            for v in vals:
+                if v.strip().isdigit():
+                    cuenta = v.strip()
+                    break
+            if cuenta:
+                break
+
+        if not cuenta:
+            continue
+
+        # ------------------------
+        # Identificar columnas
+        # ------------------------
+        if "Débito" not in block.columns or "Crédito" not in block.columns:
+            continue
+
+        block["Débito"] = pd.to_numeric(block["Débito"], errors="coerce")
+        block["Crédito"] = pd.to_numeric(block["Crédito"], errors="coerce")
+
+        # ------------------------
+        # Detectar totales
+        # ------------------------
+        desc_col = None
+        for c in ["Descripcion de Linea"]:
+            if c in block.columns:
+                desc_col = c
+                break
+
+        if desc_col is None:
+            continue
+
+        is_total = (
+            block[desc_col]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .eq("total")
+        )
+
+        df_total = block[is_total]
+        df_mov = block[~is_total]
+
+        if df_total.empty:
+            continue
+
+        total_row = df_total.iloc[0]
+
+        debito_total = total_row["Débito"]
+        credito_total = total_row["Crédito"]
+
+        # ------------------------
+        # Sumatorias reales
+        # ------------------------
+        debitos = df_mov["Débito"].sum()
+        creditos = df_mov["Crédito"].sum()
+
+        # ------------------------
+        # Saldos (del header del bloque)
+        # ------------------------
+        saldo_ini = None
+        saldo_fin = None
+
+        texto_block = " ".join(block.astype(str).values.flatten())
+
+        # muy robusto sin depender de posición exacta
+        # puedes mejorar con regex si quieres
+        # (opcional)
+
+        rows.append({
+            "Cuenta Contable": cuenta,
+            "Saldo Inicial": saldo_ini,
+            "Débito": debitos,
+            "Crédito": creditos,
+            "Saldo Final": saldo_fin,
+            "Débito Total Reporte": debito_total,
+            "Crédito Total Reporte": credito_total,
+        })
+
+    return pd.DataFrame(rows)

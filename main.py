@@ -6,13 +6,13 @@ from datetime import datetime
 import os
 import pandas as pd
 
-from io_readers import read_table, InputError
+from io_readers import read_table, InputError, extract_labeled_amount_excel
 from transformers import (
     standardize_columns, resolve_required_columns,
     build_balance_agg, transform_aux_tercero, transform_aux_cuenta,
     to_numeric_columns
 )
-from validators import validate_v1_balance_vs_aux, validate_v2_transacciones
+from validators import validate_v1_balance_vs_aux, validate_v2_transacciones, validate_aux_totales, validate_aux_tercero_totales_detallado
 from report_writer import write_report
 
 
@@ -69,7 +69,7 @@ def main():
     parser.add_argument("--balance", required=True, help="Ruta Balance_prueba (.xlsx o .csv)")
     parser.add_argument("--aux-cuenta", default=None, help="Ruta Libro_auxiliar_cuenta (.xlsx o .csv) [opcional]")
     parser.add_argument("--aux-tercero", default=None, help="Ruta Libro_auxiliar_tercero (.xlsx o .csv) [opcional]")
-    parser.add_argument("--transacciones", required=True, help="Ruta Transacciones (.xlsx o .csv)")
+    parser.add_argument("--transacciones", default=None, help="Ruta Transacciones (.xlsx o .csv)")
     parser.add_argument("--out", default="resultado_validaciones.xlsx", help="Salida Excel (por defecto resultado_validaciones.xlsx)")
     parser.add_argument("--tolerance", type=float, default=0.01, help="Tolerancia para diferencias (por defecto 0.01)")
     args = parser.parse_args()
@@ -92,30 +92,18 @@ def main():
         raise SystemExit("Para la validación 1 debes proporcionar --aux-cuenta o --aux-tercero (al menos uno).")
 
     # 1) Leer Balance
-    try:
-        df_balance_raw = read_table(args.balance)
-        ensure_not_empty(df_balance_raw, "Balance_prueba")
-        debug_df(df_balance_raw, "Balance RAW")
-    except InputError as e:
-        raise SystemExit(str(e))
-
-    df_balance_raw = standardize_columns(df_balance_raw)
-    logging.info(f"Balance filas: {len(df_balance_raw)} | columnas: {list(df_balance_raw.columns)}")
-
     # Equivalencias robustas (tildes/variantes)
     balance_required = {
         "CUENTA PRINCIPAL": ["Cuenta Principal", "CUENTA_PRINCIPAL", "Cuenta principal"],
         "SALDO INICIAL": ["Saldo Inicial", "SALDO_INICIAL", "Saldo inicial"],
-        "DÉBITO": ["DEBITO", "Debito", "Débito", "DEBITO "],
+        "DÉBITO": ["DEBITO", "Debito", "Débito"],
         "CRÉDITO": ["CREDITO", "Credito", "Crédito"],
         "SALDO FINAL": ["Saldo Final", "SALDO_FINAL", "Saldo final"],
     }
 
-    df_balance = resolve_required_columns(df_balance_raw, balance_required, context="Balance_prueba")
-    df_balance_agg = build_balance_agg(df_balance)
-    logging.info(f"Balance agregado filas (cuentas únicas): {len(df_balance_agg)}")
-    logging.info(f"Balance agregado primeras 10 filas:\n{df_balance_agg.head(10)}")
-
+    df_balance_raw = read_table(args.balance, required_columns_hint=list(balance_required.keys()))
+    df_balance_agg = build_balance_agg(df_balance_raw)
+    debug_df(df_balance_raw, "Balance RAW")
     v1_outputs = {}
     v1_eval_count = len(df_balance_agg)
 
@@ -147,9 +135,17 @@ def main():
         df_aux_t_agg = transform_aux_tercero(df_aux_t)
 
         out = validate_v1_balance_vs_aux(df_balance_agg, df_aux_t_agg, aux_type="tercero", tolerance=args.tolerance)
+        
+        v1_aux_t_totales_det = validate_aux_tercero_totales_detallado(
+            df_aux_t_raw,
+            tolerance=args.tolerance
+        )
+        
         # prefijar hojas para distinguir si también corre aux cuenta
         for k, v in out.items():
             v1_outputs[f"{k}_TERCERO"] = v
+
+        v1_outputs["V1_Aux_Tercero_Totales_Detalle"] = v1_aux_t_totales_det
 
     # 3) Validación 1: Aux cuenta
         
@@ -171,46 +167,73 @@ def main():
 
         aux_c_required = {
             "Cuenta Contable": ["CUENTA CONTABLE", "Cuenta", "CuentaContable"],
-            "Descripción de Líneas": ["Descripcion de Lineas", "Descripción de lineas", "DESCRIPCIÓN DE LÍNEAS"],
+            "Descripción de Líneas": ["Descripcion de Lineas","Descripcion de Linea", "Descripción de lineas", "DESCRIPCIÓN DE LÍNEAS"],
             "Débito": ["DEBITO", "Debito", "Débito"],
             "Crédito": ["CREDITO", "Credito", "Crédito"],
         }
         # OJO: Saldo Inicial/Final pueden o no venir como columnas; se gestionan en transformer
         df_aux_c = resolve_required_columns(df_aux_c_raw, aux_c_required, context="Libro_auxiliar_cuenta")
-        df_aux_c_agg = transform_aux_cuenta(df_aux_c)
-        logging.info(f"Aux cuenta agregado (cuentas únicas): {len(df_aux_c_agg)}")
-        logging.info(f"Aux cuenta agregado primeras 10 filas:\n{df_aux_c_agg.head(10)}")
 
+        saldo_ini_hint, si_addr = extract_labeled_amount_excel(args.aux_cuenta, "Saldo Inicial")
+        saldo_fin_hint, sf_addr = extract_labeled_amount_excel(args.aux_cuenta, "Saldo Final")
+        logging.info(f"Aux cuenta -> Saldo Inicial detectado: {saldo_ini_hint} (label en {si_addr})")
+        logging.info(f"Aux cuenta -> Saldo Final detectado: {saldo_fin_hint} (label en {sf_addr})")
+
+        df_aux_c_agg = transform_aux_cuenta(df_aux_c, saldo_inicial_hint=saldo_ini_hint,
+                                            saldo_final_hint=saldo_fin_hint)
+        
         out = validate_v1_balance_vs_aux(df_balance_agg, df_aux_c_agg, aux_type="cuenta", tolerance=args.tolerance)
+        v1_aux_c_totales = validate_aux_totales(df_aux_c_raw, aux_type="CUENTA", tolerance=args.tolerance)
+
         for k, v in out.items():
             v1_outputs[f"{k}_CUENTA"] = v
+        v1_outputs["V1_Totales_Aux_Cuenta"] = v1_aux_c_totales
 
-    # 4) Leer Transacciones
-    try:
-        df_tx_raw = read_table(args.transacciones)
-        ensure_not_empty(df_tx_raw, "Transacciones")
-        debug_df(df_tx_raw, "Transacciones RAW")
+    # 4) Validación 2: Transacciones (OPCIONAL)
+    v2_outputs = {}
+    v2_eval_count = 0
 
-    except InputError as e:
-        raise SystemExit(str(e))
+    if args.transacciones:
 
-    df_tx_raw = standardize_columns(df_tx_raw)
-    logging.info(f"Transacciones filas: {len(df_tx_raw)} | columnas: {list(df_tx_raw.columns)}")
+        tx_required = {
+            "Tipo de Comprobante": ["Tipo Comprobante", "TIPO DE COMPROBANTE", "Tipo_de_Comprobante"],
+            "Numero de Comprobante": ["Número de Comprobante", "NUMERO DE COMPROBANTE", "Numero_de_Comprobante"],
+            "Fecha contable": ["Fecha Contable", "FECHA CONTABLE", "Fecha_contable"],
+        }
 
-    tx_required = {
-        "Tipo de Comprobante": ["Tipo Comprobante", "TIPO DE COMPROBANTE", "Tipo_de_Comprobante"],
-        "Numero de Comprobante": ["Número de Comprobante", "NUMERO DE COMPROBANTE", "Numero_de_Comprobante"],
-        "Fecha contable": ["Fecha Contable", "FECHA CONTABLE", "Fecha_contable"],
-    }
-    from transformers import resolve_required_columns as _rrc
-    df_tx = _rrc(df_tx_raw, tx_required, context="Transacciones")
+        try:
+            df_tx_raw = read_table(
+                args.transacciones,
+                required_columns_hint=list(tx_required.keys())
+            )
 
-    v2 = validate_v2_transacciones(df_tx)
-    df_tx_eval = v2.pop("V2_Total_Evaluados")
-    v2_outputs = {
-        "V2_NumComp_AnoMes_Invalido": v2["V2_NumComp_AnoMes_Invalido"],
-        "V2_NumComp_Duplicado": v2["V2_NumComp_Duplicado"],
-    }
+            ensure_not_empty(df_tx_raw, "Transacciones")
+            debug_df(df_tx_raw, "Transacciones RAW")
+
+        except InputError as e:
+            raise SystemExit(str(e))
+
+        df_tx_raw = standardize_columns(df_tx_raw)
+
+        logging.info(
+            f"Transacciones filas: {len(df_tx_raw)} "
+            f"columnas: {list(df_tx_raw.columns)}"
+        )
+
+        from transformers import resolve_required_columns as _rrc
+
+        df_tx = _rrc(df_tx_raw, tx_required, context="Transacciones")
+
+        v2 = validate_v2_transacciones(df_tx)
+
+        df_tx_eval = v2.pop("V2_Total_Evaluados")
+
+        v2_outputs = {
+            "V2_NumComp_AnoMes_Invalido": v2["V2_NumComp_AnoMes_Invalido"],
+            "V2_NumComp_Duplicado": v2["V2_NumComp_Duplicado"],
+        }
+
+        v2_eval_count = len(df_tx_eval)
 
     # 5) Construir Resumen
     resumen_rows = []
@@ -221,10 +244,11 @@ def main():
         resumen_rows.append(summarize_counts(sheet_name, v1_eval_count, findings))
 
     # V2: evaluados = transacciones tras excluir "Transacciones Ppto"
-    v2_eval_count = len(df_tx_eval)
-    for sheet_name, df in v2_outputs.items():
-        findings = 0 if df is None else len(df)
-        resumen_rows.append(summarize_counts(sheet_name, v2_eval_count, findings))
+    # V2: solo si existe
+    if v2_outputs:
+        for sheet_name, df in v2_outputs.items():
+            findings = 0 if df is None else len(df)
+            resumen_rows.append(summarize_counts(sheet_name, v2_eval_count, findings))
 
     resumen_df = pd.DataFrame(resumen_rows)
 
@@ -236,7 +260,7 @@ def main():
         ("Balance_prueba", args.balance),
         ("Libro_auxiliar_cuenta", args.aux_cuenta or ""),
         ("Libro_auxiliar_tercero", args.aux_tercero or ""),
-        ("Transacciones", args.transacciones),
+        ("Transacciones", args.transacciones or "NO PROCESADO"),
         ("Salida", out_path),
         ("Tolerancia", str(args.tolerance)),
         ("Skiprows Aux Tercero", "18 (datos desde fila 19)"),

@@ -1,0 +1,6 @@
+
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+
+python main.py --balance "data\Balance_prueba.xlsx" --aux-tercero "data\Libro_auxiliar_tercero.xlsx" --aux-cuenta "data\Libro_auxiliar_cuenta.xlsx" --transacciones "data\Transacciones.xlsx" --out "data\resultado_validaciones.xlsx" --tolerance 0.01

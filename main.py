@@ -10,10 +10,13 @@ from io_readers import read_table, InputError, extract_labeled_amount_excel
 from transformers import (
     standardize_columns, resolve_required_columns,
     build_balance_agg, transform_aux_tercero, transform_aux_cuenta,
-    to_numeric_columns
+    to_numeric_columns, transform_aux_cuenta_por_bloques
 )
-from validators import validate_v1_balance_vs_aux, validate_v2_transacciones, validate_aux_totales, validate_aux_tercero_totales_detallado
-from report_writer import write_report
+from validators import (validate_v1_balance_vs_aux, validate_v2_transacciones,
+validate_aux_totales, validate_aux_tercero_totales_detallado,
+validate_aux_cuenta_integridad
+)
+from report_writer import write_report, generar_reporte_inconsistencias
 
 
 VERSION = "1.0.0"
@@ -171,23 +174,19 @@ def main():
             "Débito": ["DEBITO", "Debito", "Débito"],
             "Crédito": ["CREDITO", "Credito", "Crédito"],
         }
-        # OJO: Saldo Inicial/Final pueden o no venir como columnas; se gestionan en transformer
-        df_aux_c = resolve_required_columns(df_aux_c_raw, aux_c_required, context="Libro_auxiliar_cuenta")
+        # Transformación
+        df_aux_cuenta = transform_aux_cuenta_por_bloques(df_aux_c_raw)
 
-        saldo_ini_hint, si_addr = extract_labeled_amount_excel(args.aux_cuenta, "Saldo Inicial")
-        saldo_fin_hint, sf_addr = extract_labeled_amount_excel(args.aux_cuenta, "Saldo Final")
-        logging.info(f"Aux cuenta -> Saldo Inicial detectado: {saldo_ini_hint} (label en {si_addr})")
-        logging.info(f"Aux cuenta -> Saldo Final detectado: {saldo_fin_hint} (label en {sf_addr})")
+        # Validación
+        df_aux_validado = validate_aux_cuenta_integridad(df_aux_cuenta, tolerance=args.tolerance)
 
-        df_aux_c_agg = transform_aux_cuenta(df_aux_c, saldo_inicial_hint=saldo_ini_hint,
-                                            saldo_final_hint=saldo_fin_hint)
-        
-        out = validate_v1_balance_vs_aux(df_balance_agg, df_aux_c_agg, aux_type="cuenta", tolerance=args.tolerance)
-        v1_aux_c_totales = validate_aux_totales(df_aux_c_raw, aux_type="CUENTA", tolerance=args.tolerance)
+        # Hallazgos
+        df_aux_inconsistencias = generar_reporte_inconsistencias(df_aux_validado)
 
-        for k, v in out.items():
-            v1_outputs[f"{k}_CUENTA"] = v
-        v1_outputs["V1_Totales_Aux_Cuenta"] = v1_aux_c_totales
+        # Outputs
+        v1_outputs["V1_Aux_Cuenta_Transformado"] = df_aux_cuenta
+        v1_outputs["V1_Aux_Cuenta_Validado"] = df_aux_validado
+        v1_outputs["V1_Aux_Cuenta_Inconsistencias"] = df_aux_inconsistencias
 
     # 4) Validación 2: Transacciones (OPCIONAL)
     v2_outputs = {}

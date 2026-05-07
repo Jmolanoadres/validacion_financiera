@@ -264,3 +264,136 @@ def transform_aux_cuenta(
         })
 
     return pd.DataFrame(rows)
+
+# --------------------------------------------------
+# Helper: detectar inicio de cuentas
+# --------------------------------------------------
+def split_aux_by_cuenta(df: pd.DataFrame):
+
+    blocks = []
+    current = []
+
+    for _, row in df.iterrows():
+
+        texto = " ".join([str(v) for v in row.values if pd.notna(v)])
+
+        if "Cuenta:" in texto and current:
+            blocks.append(pd.DataFrame(current))
+            current = []
+
+        current.append(row)
+
+    if current:
+        blocks.append(pd.DataFrame(current))
+
+    return blocks
+
+
+# --------------------------------------------------
+# Helper: extraer número
+# --------------------------------------------------
+def extract_number(text):
+    try:
+        return float(str(text).replace(",", "").strip())
+    except:
+        return None
+
+
+# --------------------------------------------------
+# TRANSFORMACIÓN PRINCIPAL
+# --------------------------------------------------
+def transform_aux_cuenta_por_bloques(df_aux_raw: pd.DataFrame):
+
+    blocks = split_aux_by_cuenta(df_aux_raw)
+
+    rows = []
+
+    for block in blocks:
+
+        texto_block = " ".join(block.astype(str).values.flatten())
+
+        # ----------------------------------------
+        # 1. CUENTA
+        # ----------------------------------------
+        match_cuenta = re.search(r"Cuenta:\s*(\d+)", texto_block)
+        if not match_cuenta:
+            continue
+
+        cuenta = match_cuenta.group(1)
+
+        # ----------------------------------------
+        # 2. SALDOS
+        # ----------------------------------------
+        saldo_ini = None
+        saldo_fin = None
+
+        match_ini = re.search(r"Saldo Inicial\s*([0-9\.\,E\-]+)", texto_block)
+        match_fin = re.search(r"Saldo Final\s*([0-9\.\,E\-]+)", texto_block)
+
+        if match_ini:
+            saldo_ini = extract_number(match_ini.group(1))
+
+        if match_fin:
+            saldo_fin = extract_number(match_fin.group(1))
+
+        # ----------------------------------------
+        # 3. COLUMNAS NUMÉRICAS
+        # ----------------------------------------
+        if "Débito" not in block.columns or "Crédito" not in block.columns:
+            continue
+
+        block["Débito"] = pd.to_numeric(block["Débito"], errors="coerce")
+        block["Crédito"] = pd.to_numeric(block["Crédito"], errors="coerce")
+
+        # ----------------------------------------
+        # 4. TOTAL POR CUENTA
+        # ----------------------------------------
+        desc_col = "Descripcion de Linea"
+
+        if desc_col not in block.columns:
+            continue
+
+        block[desc_col] = block[desc_col].astype(str).str.strip().str.lower()
+
+        is_total = block[desc_col] == "total"
+
+        df_total = block[is_total]
+        df_mov = block[~is_total]
+
+        if df_total.empty:
+            continue
+
+        total_row = df_total.iloc[0]
+
+        total_debito_rep = total_row["Débito"]
+        total_credito_rep = total_row["Crédito"]
+
+        # ----------------------------------------
+        # 5. SUMATORIAS
+        # ----------------------------------------
+        debitos_calc = df_mov["Débito"].sum()
+        creditos_calc = df_mov["Crédito"].sum()
+
+        # ----------------------------------------
+        # 6. SALDO FINAL CALCULADO
+        # ----------------------------------------
+        saldo_fin_calc = None
+
+        if saldo_ini is not None:
+            saldo_fin_calc = saldo_ini + debitos_calc - creditos_calc
+
+        # ----------------------------------------
+        # 7. REGISTRO FINAL
+        # ----------------------------------------
+        rows.append({
+            "Cuenta Contable": cuenta,
+            "Saldo Inicial": saldo_ini,
+            "Débito": debitos_calc,
+            "Crédito": creditos_calc,
+            "Saldo Final Reportado": saldo_fin,
+            "Saldo Final Calculado": saldo_fin_calc,
+            "Débito Reporte": total_debito_rep,
+            "Crédito Reporte": total_credito_rep,
+        })
+
+    return pd.DataFrame(rows)

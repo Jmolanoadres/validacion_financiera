@@ -76,3 +76,15 @@ def write_report(
         ws_readme["A1"].font = Font(bold=True)
         ws_readme["B1"].font = Font(bold=True)
         _autosize(ws_readme)
+
+def generar_reporte_inconsistencias(df_validado):
+
+    df = df_validado.copy()
+
+    inconsistencias = df[
+        (~df["Debito OK"]) |
+        (~df["Credito OK"]) |
+        (~df["Saldo OK"])
+    ]
+
+    return inconsistencias.sort_values("Cuenta Contable")

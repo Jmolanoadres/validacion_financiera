@@ -334,118 +334,27 @@ def validate_aux_tercero_totales_detallado(
         }
     ])
 
-def split_aux_by_cuenta(df: pd.DataFrame) -> list[pd.DataFrame]:
 
-    blocks = []
-    current_block = []
+def validate_aux_cuenta_integridad(df_aux, tolerance=0.01):
 
-    for _, row in df.iterrows():
+    df = df_aux.copy()
 
-        texto = " ".join([str(v) for v in row.values if pd.notna(v)])
+    # ---------------------------------------
+    # 1. Diferencias Débito / Crédito
+    # ---------------------------------------
+    df["Diff_Debito"] = df["Débito"] - df["Débito Reporte"]
+    df["Diff_Credito"] = df["Crédito"] - df["Crédito Reporte"]
 
-        # Detecta inicio de nueva cuenta
-        if "Cuenta:" in texto and current_block:
-            blocks.append(pd.DataFrame(current_block))
-            current_block = []
+    df["Debito OK"] = df["Diff_Debito"].abs() <= tolerance
+    df["Credito OK"] = df["Diff_Credito"].abs() <= tolerance
 
-        current_block.append(row)
+    # ---------------------------------------
+    # 2. Validación saldo final
+    # ---------------------------------------
+    df["Diff_Saldo"] = (
+        df["Saldo Final Calculado"] - df["Saldo Final Reportado"]
+    )
 
-    if current_block:
-        blocks.append(pd.DataFrame(current_block))
+    df["Saldo OK"] = df["Diff_Saldo"].abs() <= tolerance
 
-    return blocks
-
-
-def transform_aux_cuenta_por_bloques(df_aux_raw: pd.DataFrame):
-
-    blocks = split_aux_by_cuenta(df_aux_raw)
-
-    rows = []
-
-    for block in blocks:
-
-        # ------------------------
-        # Detectar cuenta
-        # ------------------------
-        cuenta = None
-        for _, r in block.iterrows():
-            vals = [str(v) for v in r.values if pd.notna(v)]
-            for v in vals:
-                if v.strip().isdigit():
-                    cuenta = v.strip()
-                    break
-            if cuenta:
-                break
-
-        if not cuenta:
-            continue
-
-        # ------------------------
-        # Identificar columnas
-        # ------------------------
-        if "Débito" not in block.columns or "Crédito" not in block.columns:
-            continue
-
-        block["Débito"] = pd.to_numeric(block["Débito"], errors="coerce")
-        block["Crédito"] = pd.to_numeric(block["Crédito"], errors="coerce")
-
-        # ------------------------
-        # Detectar totales
-        # ------------------------
-        desc_col = None
-        for c in ["Descripcion de Linea"]:
-            if c in block.columns:
-                desc_col = c
-                break
-
-        if desc_col is None:
-            continue
-
-        is_total = (
-            block[desc_col]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .eq("total")
-        )
-
-        df_total = block[is_total]
-        df_mov = block[~is_total]
-
-        if df_total.empty:
-            continue
-
-        total_row = df_total.iloc[0]
-
-        debito_total = total_row["Débito"]
-        credito_total = total_row["Crédito"]
-
-        # ------------------------
-        # Sumatorias reales
-        # ------------------------
-        debitos = df_mov["Débito"].sum()
-        creditos = df_mov["Crédito"].sum()
-
-        # ------------------------
-        # Saldos (del header del bloque)
-        # ------------------------
-        saldo_ini = None
-        saldo_fin = None
-
-        texto_block = " ".join(block.astype(str).values.flatten())
-
-        # muy robusto sin depender de posición exacta
-        # puedes mejorar con regex si quieres
-        # (opcional)
-
-        rows.append({
-            "Cuenta Contable": cuenta,
-            "Saldo Inicial": saldo_ini,
-            "Débito": debitos,
-            "Crédito": creditos,
-            "Saldo Final": saldo_fin,
-            "Débito Total Reporte": debito_total,
-            "Crédito Total Reporte": credito_total,
-        })
-
-    return pd.DataFrame(rows)
+    return df

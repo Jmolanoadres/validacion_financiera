@@ -310,7 +310,9 @@ def transform_aux_cuenta_por_bloques(df_aux_raw: pd.DataFrame):
 
     for block in blocks:
 
-        texto_block = " ".join(block.astype(str).values.flatten())
+        texto_block = " ".join(
+                str(v) for v in block.values.flatten() if pd.notna(v)
+                )
 
         # ----------------------------------------
         # 1. CUENTA

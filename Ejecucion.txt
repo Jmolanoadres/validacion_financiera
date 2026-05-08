@@ -3,4 +3,5 @@ python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
 
-python main.py --balance "data\Balance_prueba.xlsx" --aux-tercero "data\Libro_auxiliar_tercero.xlsx" --aux-cuenta "data\Libro_auxiliar_cuenta.xlsx" --transacciones "data\Transacciones.xlsx" --out "data\resultado_validaciones.xlsx" --tolerance 0.01
+python main.py --balance "data\ADR_Balance_Prueba_URA_RP_ADR_marzo-dic 2025.xlsx" --aux-tercero "data\Libro_auxiliar_tercero.xlsx" --aux-cuenta "data\Libro Auxiliar por Cuenta V2 - cuenta pasivo - marzo-dic-2025 2.xlsx" --transacciones "data\Transacciones.xlsx" --out "data\resultado_validaciones.xlsx" --tolerance 0.01
+python main.py --balance "data\ADR_Balance_Prueba_URA_RP_ADR_marzo-dic 2025.xlsx" --aux-cuenta "data\Libro Auxiliar por Cuenta V2 - cuenta pasivo - marzo-dic-2025 2.xlsx" --out "data\resultado_validaciones.xlsx" --tolerance 0.01

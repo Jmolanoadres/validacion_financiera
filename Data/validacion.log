@@ -1,154 +1,33 @@
-2026-04-29 20:28:54,554 | INFO | === Inicio validador ===
-2026-04-29 20:28:54,554 | INFO | Versión: 1.0.0
-2026-04-29 20:28:54,555 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 20:28:54,555 | INFO | Aux cuenta: None
-2026-04-29 20:28:54,555 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 20:28:54,556 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 20:28:54,556 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 20:28:54,557 | INFO | Tolerancia: 0.01
-2026-04-29 20:28:54,666 | INFO | Balance filas: 636 | columnas: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5']
-2026-04-29 20:38:54,233 | INFO | === Inicio validador ===
-2026-04-29 20:38:54,233 | INFO | Versión: 1.0.0
-2026-04-29 20:38:54,234 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 20:38:54,234 | INFO | Aux cuenta: None
-2026-04-29 20:38:54,234 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 20:38:54,235 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 20:38:54,235 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 20:38:54,235 | INFO | Tolerancia: 0.01
-2026-04-29 20:38:54,317 | INFO | Balance filas: 628 | columnas: ['1', 'ACTIVO', '4852579575607.24', '51055285887481.47', '51540051081695.59', '4367814381393.12']
-2026-04-29 20:39:25,977 | INFO | === Inicio validador ===
-2026-04-29 20:39:25,977 | INFO | Versión: 1.0.0
-2026-04-29 20:39:25,977 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 20:39:25,977 | INFO | Aux cuenta: None
-2026-04-29 20:39:25,977 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 20:39:25,978 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 20:39:25,978 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 20:39:25,978 | INFO | Tolerancia: 0.01
-2026-04-29 20:39:26,047 | INFO | Balance filas: 629 | columnas: ['CUENTA PRINCIPAL', 'NOMBRE', 'SALDO INICIAL', 'DÉBITO', 'CRÉDITO', 'SALDO FINAL']
-2026-04-29 20:39:26,203 | INFO | Balance agregado filas (cuentas únicas): 628
-2026-04-29 20:39:31,315 | INFO | Aux tercero filas (raw): 15334 | columnas: ['Origen', 'Número de Comprobante', 'Tipo de Comprobante', 'Cuenta Contable', 'Unnamed: 4', 'Fecha Contable', 'Unnamed: 6', 'Unnamed: 7', 'Factura', 'Unnamed: 9', 'Lote de Asientos Contables', 'Unnamed: 11', 'Concepto', 'Documento Tercero', 'Unnamed: 14', 'Nombre Tercero', 'Unnamed: 16', 'Unnamed: 17', 'Descripción de Líneas', 'Saldo Inicial Tercero', 'Débito', 'Crédito', 'Saldo Final Tercero', 'Unnamed: 23']
-2026-04-29 21:11:59,514 | INFO | === Inicio validador ===
-2026-04-29 21:11:59,515 | INFO | Versión: 1.0.0
-2026-04-29 21:11:59,515 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 21:11:59,515 | INFO | Aux cuenta: /data/Libro_auxiliar_cuenta.xlsx
-2026-04-29 21:11:59,515 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 21:11:59,515 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 21:11:59,516 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 21:11:59,516 | INFO | Tolerancia: 0.01
-2026-04-29 21:11:59,603 | INFO | Balance filas: 617 | columnas: ['1110050605', 'Cta.309038628 - ADRES – CAJAS DE COMPENSACION FAMILIAR APOR', '803', '88524118334', '88524119137', '0']
-2026-04-29 21:13:43,691 | INFO | === Inicio validador ===
-2026-04-29 21:13:43,691 | INFO | Versión: 1.0.0
-2026-04-29 21:13:43,691 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 21:13:43,691 | INFO | Aux cuenta: data/Libro_auxiliar_cuenta.xlsx
-2026-04-29 21:13:43,691 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 21:13:43,692 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 21:13:43,692 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 21:13:43,692 | INFO | Tolerancia: 0.01
-2026-04-29 21:13:43,771 | INFO | Balance filas: 617 | columnas: ['1110050605', 'Cta.309038628 - ADRES – CAJAS DE COMPENSACION FAMILIAR APOR', '803', '88524118334', '88524119137', '0']
-2026-04-29 21:20:12,248 | INFO | === Inicio validador ===
-2026-04-29 21:20:12,249 | INFO | Versión: 1.0.0
-2026-04-29 21:20:12,250 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 21:20:12,250 | INFO | Aux cuenta: data/Libro_auxiliar_cuenta.xlsx
-2026-04-29 21:20:12,250 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 21:20:12,250 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 21:20:12,250 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 21:20:12,251 | INFO | Tolerancia: 0.01
-2026-04-29 21:20:12,350 | INFO | Balance filas: 628 | columnas: ['1', 'ACTIVO', '4852579575607.24', '51055285887481.47', '51540051081695.59', '4367814381393.12']
-2026-04-29 21:20:39,656 | INFO | === Inicio validador ===
-2026-04-29 21:20:39,656 | INFO | Versión: 1.0.0
-2026-04-29 21:20:39,656 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 21:20:39,657 | INFO | Aux cuenta: data/Libro_auxiliar_cuenta.xlsx
-2026-04-29 21:20:39,657 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 21:20:39,657 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 21:20:39,657 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 21:20:39,657 | INFO | Tolerancia: 0.01
-2026-04-29 21:20:39,728 | INFO | Balance filas: 629 | columnas: ['CUENTA PRINCIPAL', 'NOMBRE', 'SALDO INICIAL', 'DÉBITO', 'CRÉDITO', 'SALDO FINAL']
-2026-04-29 21:20:39,758 | INFO | Balance agregado filas (cuentas únicas): 628
-2026-04-29 21:20:45,221 | INFO | Aux tercero filas (raw): 15334 | columnas: ['Origen', 'Número de Comprobante', 'Tipo de Comprobante', 'Cuenta Contable', 'Unnamed: 4', 'Fecha Contable', 'Unnamed: 6', 'Unnamed: 7', 'Factura', 'Unnamed: 9', 'Lote de Asientos Contables', 'Unnamed: 11', 'Concepto', 'Documento Tercero', 'Unnamed: 14', 'Nombre Tercero', 'Unnamed: 16', 'Unnamed: 17', 'Descripción de Líneas', 'Saldo Inicial Tercero', 'Débito', 'Crédito', 'Saldo Final Tercero', 'Unnamed: 23']
-2026-04-29 21:31:44,289 | INFO | === Inicio validador ===
-2026-04-29 21:31:44,289 | INFO | Versión: 1.0.0
-2026-04-29 21:31:44,289 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 21:31:44,290 | INFO | Aux cuenta: data/Libro_auxiliar_cuenta.xlsx
-2026-04-29 21:31:44,290 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 21:31:44,290 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 21:31:44,290 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 21:31:44,290 | INFO | Tolerancia: 0.01
-2026-04-29 21:31:44,374 | INFO | Balance filas: 629 | columnas: ['CUENTA PRINCIPAL', 'NOMBRE', 'SALDO INICIAL', 'DÉBITO', 'CRÉDITO', 'SALDO FINAL']
-2026-04-29 21:31:44,412 | INFO | Balance agregado filas (cuentas únicas): 628
-2026-04-29 21:31:44,426 | INFO | Balance agregado primeras 10 filas:
-  CUENTA PRINCIPAL         SALDO INICIAL                 DÉBITO                CRÉDITO           SALDO FINAL
-0                                   None                   None                   None                  None
-1                1  4852579575607.240234   51055285887481.46875   51540051081695.59375  4367814381393.120117
-2               11  3694592574629.540039  40822657998540.171875  41302465048056.960938      3214785525112.75
-3             1110  3694592574629.540039  40822657998540.171875  41302465048056.960938      3214785525112.75
-4           111005    42303335041.169998        6288204493968.5   6288958975153.740234        41548853855.93
-5         11100504         8004537907.23              339925.77                    0.0          8004877833.0
-6       1110050401         8004537907.23              339925.77                    0.0          8004877833.0
-7         11100506         1483488814.52   5724749866992.860352   5725689580002.389648          543775804.99
-8       1110050601                   0.0                57000.0                57000.0                   0.0
-9       1110050602                   0.0         245653073595.0         245653073595.0                   0.0
-2026-04-29 21:31:49,393 | INFO | Aux tercero filas (raw): 15334 | columnas: ['Origen', 'Número de Comprobante', 'Tipo de Comprobante', 'Cuenta Contable', 'Unnamed: 4', 'Fecha Contable', 'Unnamed: 6', 'Unnamed: 7', 'Factura', 'Unnamed: 9', 'Lote de Asientos Contables', 'Unnamed: 11', 'Concepto', 'Documento Tercero', 'Unnamed: 14', 'Nombre Tercero', 'Unnamed: 16', 'Unnamed: 17', 'Descripción de Líneas', 'Saldo Inicial Tercero', 'Débito', 'Crédito', 'Saldo Final Tercero', 'Unnamed: 23']
-2026-04-29 21:31:49,624 | INFO | Aux tercero agregado (cuentas únicas): 4
-2026-04-29 21:31:49,636 | INFO | Aux tercero agregado primeras 10 filas:
-      Cuenta Contable  Saldo Inicial Tercero        Débito       Crédito  Saldo Final Tercero
-0                                        NaN           NaN           NaN                  NaN
-1            29020101           4.875908e+11  3.700968e+12  3.314892e+12         1.015143e+11
-2     Cuenta Contable                    NaN           NaN           NaN                  NaN
-3  Documento Tercero:                    NaN           NaN           NaN                  NaN
-2026-04-29 21:31:54,659 | INFO | Aux cuenta filas (raw): 15088 | columnas: ['Origen', 'Unnamed: 1', 'Número de Comprobante', 'Cuenta Contable', 'Tipo de Comprobante', 'Unnamed: 5', 'Fecha Contable', 'Factura', 'Unnamed: 8', 'Lote de Asientos Contables', 'Unnamed: 10', 'Concepto', 'Unnamed: 12', 'Documento Tercero', 'Unnamed: 14', 'Nombre Tercero', 'Unnamed: 16', 'Descripcion de Linea', 'Unnamed: 18', 'Débito', 'Crédito', 'Unnamed: 21']
-2026-04-29 21:53:31,830 | INFO | === Inicio validador ===
-2026-04-29 21:53:31,831 | INFO | Versión: 1.0.0
-2026-04-29 21:53:31,831 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 21:53:31,831 | INFO | Aux cuenta: data/Libro_auxiliar_cuenta.xlsx
-2026-04-29 21:53:31,831 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 21:53:31,831 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 21:53:31,831 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 21:53:31,832 | INFO | Tolerancia: 0.01
-2026-04-29 21:53:31,928 | INFO | Balance filas: 629 | columnas: ['CUENTA PRINCIPAL', 'NOMBRE', 'SALDO INICIAL', 'DÉBITO', 'CRÉDITO', 'SALDO FINAL']
-2026-04-29 21:53:31,960 | INFO | Balance agregado filas (cuentas únicas): 628
-2026-04-29 21:53:31,982 | INFO | Balance agregado primeras 10 filas:
-  CUENTA PRINCIPAL  ...           SALDO FINAL
-0                   ...                  None
-1                1  ...  4367814381393.120117
-2               11  ...      3214785525112.75
-3             1110  ...      3214785525112.75
-4           111005  ...        41548853855.93
-5         11100504  ...          8004877833.0
-6       1110050401  ...          8004877833.0
-7         11100506  ...          543775804.99
-8       1110050601  ...                   0.0
-9       1110050602  ...                   0.0
-
-[10 rows x 5 columns]
-2026-04-29 21:53:37,830 | INFO | Aux tercero filas (raw): 15333 | columnas: ['Cuentas a pagar', '2026030000261', 'Cuentas por pagar', '29020101', 'Unnamed: 4', '30-03-2026', 'Unnamed: 6', 'Unnamed: 7', 'CGD_Proc_12232_EPS010_210_C', 'Unnamed: 9', 'Payables A 2030937000001 2030936 Y', 'Unnamed: 11', 'Facturas de Oracle Fusion Payables.', '800088702', 'Unnamed: 14', 'NIT-800088702-EPS SURA', 'Unnamed: 16', 'Unnamed: 17', 'GIRO DIRECTO RECURSOS UPC DISTRIBUCION IPS Proceso 12243', '0', '1127479', '0.1', '0.2', 'Unnamed: 23']
-2026-04-29 21:55:21,918 | INFO | === Inicio validador ===
-2026-04-29 21:55:21,918 | INFO | Versión: 1.0.0
-2026-04-29 21:55:21,918 | INFO | Balance: data/Balance_prueba.xlsx
-2026-04-29 21:55:21,918 | INFO | Aux cuenta: data/Libro_auxiliar_cuenta.xlsx
-2026-04-29 21:55:21,918 | INFO | Aux tercero: data/Libro_auxiliar_tercero.xlsx
-2026-04-29 21:55:21,918 | INFO | Transacciones: data/Transacciones.xlsx
-2026-04-29 21:55:21,918 | INFO | Salida Excel: data/resultado_validaciones.xlsx
-2026-04-29 21:55:21,918 | INFO | Tolerancia: 0.01
-2026-04-29 21:55:21,985 | INFO | Balance filas: 629 | columnas: ['CUENTA PRINCIPAL', 'NOMBRE', 'SALDO INICIAL', 'DÉBITO', 'CRÉDITO', 'SALDO FINAL']
-2026-04-29 21:55:22,007 | INFO | Balance agregado filas (cuentas únicas): 628
-2026-04-29 21:55:22,021 | INFO | Balance agregado primeras 10 filas:
-  CUENTA PRINCIPAL         SALDO INICIAL                 DÉBITO                CRÉDITO           SALDO FINAL
-0                                   None                   None                   None                  None
-1                1  4852579575607.240234   51055285887481.46875   51540051081695.59375  4367814381393.120117
-2               11  3694592574629.540039  40822657998540.171875  41302465048056.960938      3214785525112.75
-3             1110  3694592574629.540039  40822657998540.171875  41302465048056.960938      3214785525112.75
-4           111005    42303335041.169998        6288204493968.5   6288958975153.740234        41548853855.93
-5         11100504         8004537907.23              339925.77                    0.0          8004877833.0
-6       1110050401         8004537907.23              339925.77                    0.0          8004877833.0
-7         11100506         1483488814.52   5724749866992.860352   5725689580002.389648          543775804.99
-8       1110050601                   0.0                57000.0                57000.0                   0.0
-9       1110050602                   0.0         245653073595.0         245653073595.0                   0.0
-2026-04-29 21:55:27,941 | INFO | Aux tercero filas (raw): 15334 | columnas: ['Origen', 'Número de Comprobante', 'Tipo de Comprobante', 'Cuenta Contable', 'Unnamed: 4', 'Fecha Contable', 'Unnamed: 6', 'Unnamed: 7', 'Factura', 'Unnamed: 9', 'Lote de Asientos Contables', 'Unnamed: 11', 'Concepto', 'Documento Tercero', 'Unnamed: 14', 'Nombre Tercero', 'Unnamed: 16', 'Unnamed: 17', 'Descripción de Líneas', 'Saldo Inicial Tercero', 'Débito', 'Crédito', 'Saldo Final Tercero', 'Unnamed: 23']
-2026-04-29 21:55:28,311 | INFO | Aux tercero agregado (cuentas únicas): 4
-2026-04-29 21:55:28,324 | INFO | Aux tercero agregado primeras 10 filas:
-      Cuenta Contable  Saldo Inicial Tercero        Débito       Crédito  Saldo Final Tercero
-0                                        NaN           NaN           NaN                  NaN
-1            29020101           4.875908e+11  3.700968e+12  3.314892e+12         1.015143e+11
-2     Cuenta Contable                    NaN           NaN           NaN                  NaN
-3  Documento Tercero:                    NaN           NaN           NaN                  NaN
-2026-04-29 21:55:34,735 | INFO | Aux cuenta filas (raw): 15087 | columnas: ['Cuentas a pagar', 'Unnamed: 1', '2026030000002', '29020101', 'Cuentas por pagar', 'Unnamed: 5', '02-03-2026', 'CGD_Proc_12151_CCFC50_2_M', 'Unnamed: 8', 'Payables A 1956770000003 1956769 Y', 'Unnamed: 10', 'Facturas de Oracle Fusion Payables.', 'Unnamed: 12', '890500675', 'Unnamed: 14', 'NIT-890500675-CAJA DE COMPENSACION FAMILIAR DEL ORIENTE COMFAORIENTE', 'Unnamed: 16', 'GIRO DIRECTO RECURSOS UPC DISTRIBUCION IPS Proceso 12165', 'Unnamed: 18', '110414523', '0', 'Unnamed: 21']
+2026-05-07 18:18:13,299 | INFO | === Inicio validador ===
+2026-05-07 18:18:13,299 | INFO | Versión: 1.0.0
+2026-05-07 18:18:13,299 | INFO | Balance: data\ADR_Balance_Prueba_URA_RP_ADR_marzo-dic 2025.xlsx
+2026-05-07 18:18:13,299 | INFO | Aux cuenta: data\Libro Auxiliar por Cuenta V2 - cuenta pasivo - marzo-dic-2025 2.xlsx
+2026-05-07 18:18:13,299 | INFO | Aux tercero: None
+2026-05-07 18:18:13,299 | INFO | Transacciones: None
+2026-05-07 18:18:13,299 | INFO | Salida Excel: data\resultado_validaciones.xlsx
+2026-05-07 18:18:13,299 | INFO | Tolerancia: 0.01
+2026-05-07 18:18:13,347 | INFO | [DEBUG] Balance RAW
+2026-05-07 18:18:13,347 | INFO |         Filas: 747
+2026-05-07 18:18:13,348 | INFO |         Columnas (6): ['CUENTA PRINCIPAL', 'NOMBRE', 'SALDO INICIAL', 'DÉBITO', 'CRÉDITO', 'SALDO FINAL']
+2026-05-07 18:20:00,865 | INFO | [DEBUG] Aux Cuenta RAW
+2026-05-07 18:20:00,865 | INFO |         Filas: 999984
+2026-05-07 18:20:00,866 | INFO |         Columnas (16): ['Origen', 'Unnamed: 1', 'Número de Comprobante', 'Cuenta Contable', 'Tipo de Comprobante', 'Fecha Contable', 'Factura', 'Unnamed: 8', 'Lote de Asientos Contables', 'Concepto', 'Documento Tercero', 'Nombre Tercero', 'Descripcion de Linea', 'Unnamed: 18', 'Débito', 'Crédito']
+2026-05-07 18:20:01,003 | INFO | Aux cuenta filas (raw): 999984 | columnas: ['Origen', 'Unnamed: 1', 'Número de Comprobante', 'Cuenta Contable', 'Tipo de Comprobante', 'Fecha Contable', 'Factura', 'Unnamed: 8', 'Lote de Asientos Contables', 'Concepto', 'Documento Tercero', 'Nombre Tercero', 'Descripcion de Linea', 'Unnamed: 18', 'Débito', 'Crédito']
+2026-05-07 18:26:09,719 | INFO | === Inicio validador ===
+2026-05-07 18:26:09,719 | INFO | Versión: 1.0.0
+2026-05-07 18:26:09,719 | INFO | Balance: data\ADR_Balance_Prueba_URA_RP_ADR_marzo-dic 2025.xlsx
+2026-05-07 18:26:09,719 | INFO | Aux cuenta: data\Libro Auxiliar por Cuenta V2 - cuenta pasivo - marzo-dic-2025 2.xlsx
+2026-05-07 18:26:09,719 | INFO | Aux tercero: None
+2026-05-07 18:26:09,719 | INFO | Transacciones: None
+2026-05-07 18:26:09,719 | INFO | Salida Excel: data\resultado_validaciones.xlsx
+2026-05-07 18:26:09,719 | INFO | Tolerancia: 0.01
+2026-05-07 18:26:09,765 | INFO | [DEBUG] Balance RAW
+2026-05-07 18:26:09,765 | INFO |         Filas: 747
+2026-05-07 18:26:09,766 | INFO |         Columnas (6): ['CUENTA PRINCIPAL', 'NOMBRE', 'SALDO INICIAL', 'DÉBITO', 'CRÉDITO', 'SALDO FINAL']
+2026-05-07 18:27:59,065 | INFO | [DEBUG] Aux Cuenta RAW
+2026-05-07 18:27:59,065 | INFO |         Filas: 999984
+2026-05-07 18:27:59,065 | INFO |         Columnas (16): ['Origen', 'Unnamed: 1', 'Número de Comprobante', 'Cuenta Contable', 'Tipo de Comprobante', 'Fecha Contable', 'Factura', 'Unnamed: 8', 'Lote de Asientos Contables', 'Concepto', 'Documento Tercero', 'Nombre Tercero', 'Descripcion de Linea', 'Unnamed: 18', 'Débito', 'Crédito']
+2026-05-07 18:27:59,207 | INFO | Aux cuenta filas (raw): 999984 | columnas: ['Origen', 'Unnamed: 1', 'Número de Comprobante', 'Cuenta Contable', 'Tipo de Comprobante', 'Fecha Contable', 'Factura', 'Unnamed: 8', 'Lote de Asientos Contables', 'Concepto', 'Documento Tercero', 'Nombre Tercero', 'Descripcion de Linea', 'Unnamed: 18', 'Débito', 'Crédito']
+2026-05-07 18:28:22,658 | INFO | === Fin validador ===
+2026-05-07 18:28:22,659 | INFO | Archivo generado: data\resultado_validaciones.xlsx
+2026-05-07 18:28:22,659 | INFO | Log generado: data\validacion.log
